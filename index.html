@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Førsteverdenskrig kort over faldne sønderjyder</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    
+    <!-- Leaflet Search CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-search/dist/leaflet-search.min.css" />
+
+    <!-- Leaflet Measure CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 600px;  /* Kortets højde */
+            width: 60%;  /* Kortets bredde */
+            margin: 0 auto;  /* Centrer kortet horisontalt */
+            position: relative;
+        }
+        #search-container, #fullscreen-btn, #cause-select-container, #age-select-container {
+            position: fixed;
+            z-index: 1000; /* Sørg for, at elementerne ligger over kortet */
+            background-color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        #search-container {
+            top: 250px;
+            left: 5px;
+            width: 150px; /* Gør søgebjælken mindre */
+        }
+        #search-input {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        #fullscreen-btn {
+            top: 200px;
+            left: 5px;
+        }
+        #cause-select-container {
+            top: 300px;
+            left: 5px;
+            width: 150px;
+        }
+        #cause-select {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        #age-select-container {
+            top: 368px;
+            left: 5px;
+            width: 150px;
+        }
+        #age-select {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #footer {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background-color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kort over sønderjyder i tysk tjeneste, som døde under førsteverdenskrig</h1>
+    <div id="search-container">
+        <input id="search-input" type="text" placeholder="Søg efter navne..."/>
+    </div>
+    <div id="cause-select-container">
+        <label for="cause-select">Vælg dødsårsag:</label>
+        <select id="cause-select">
+            <option value="">Alle</option>
+        </select>
+    </div>
+    <div id="age-select-container">
+        <label for="age-select">Vælg aldersinterval:</label>
+        <select id="age-select">
+            <option value="">Alle</option>
+            <option value="10-20">10-20</option>
+            <option value="20-30">20-30</option>
+            <option value="31-40">31-40</option>
+            <option value="41-50">41-50</option>
+            <option value="51-60">51-60</option>
+            <option value="60-80">60-80</option>
+            <option value="80-100">80-100</option>
+        </select>
+    </div>
+    <div id="fullscreen-btn">
+        <button id="fullscreen-toggle">Fuldskærm</button>
+    </div>
+    <div id="map"></div>
+    <div id="footer">Lavet af Erik Luis Lanuza Oehlerich - erikoehlerich@gmail.com</div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- Leaflet MarkerCluster JavaScript -->
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+    <!-- Leaflet Search JavaScript -->
+    <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
+
+    <!-- Leaflet Measure JavaScript -->
+    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+
+    <script>
+        // Initialiser kortet
+        var map = L.map('map').setView([50.9787122, 8.6985192], 4); // Centrer kortet
+
+        // Definer baggrundskortene
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        });
+
+        var googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: '© Google',
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            maxZoom: 20
+        });
+
+        var googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            attribution: '© Google',
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            maxZoom: 20
+        });
+
+        var mapbox = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=your.mapbox.access.token', {
+            attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a>',
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1,
+            maxZoom: 20
+        });
+
+        // Tilføj baggrundskort som basislag
+        var baseLayers = {
+            "OpenStreetMap": osm,
+            "Google Satellite": googleSat,
+            "Google Streets": googleStreets,
+            "Mapbox Streets": mapbox
+        };
+
+        // Tilføj baseLayers til kortet
+        L.control.layers(baseLayers).addTo(map);
+
+        // Tilføj OSM som standard baggrundskort
+        osm.addTo(map);
+
+        // Opret en marker cluster gruppe
+        var markers = L.markerClusterGroup({
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+
+        // Data array
+        var allData = [];
+        var causes = new Set(); // Tilføj en set til dødsårsager
+
+        // Hent og vis data fra JSON filen
+        fetch('samletdataoverfaldnejyder.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Netværksrespons ikke OK');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Hentet data:', data);
+
+                // Antag at data er et objekt med en nøgle der indeholder arrayet
+                if (data && data["data file 5 post fix of cause o"] && Array.isArray(data["data file 5 post fix of cause o"])) {
+                    allData = data["data file 5 post fix of cause o"];
+                    
+                    // Find alle unikke dødsårsager
+                    allData.forEach(item => {
+                        if (item.Cause_of_death) {
+                            causes.add(item.Cause_of_death);
+                        }
+                    });
+
+                    // Fyld dødsårsager i dropdown-menuen
+                    const causeSelect = document.getElementById('cause-select');
+                    causes.forEach(cause => {
+                        const option = document.createElement('option');
+                        option.value = cause;
+                        option.textContent = cause;
+                        causeSelect.appendChild(option);
+                    });
+
+                    // Initial opdatering af markører
+                    updateMarkers(allData);
+                } else {
+                    console.error('Data er ikke en array:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch fejl:', error);
+            });
+
+        // Opdater markører på kortet
+        function updateMarkers(data) {
+            markers.clearLayers(); // Ryd eksisterende markører
+
+            data.forEach(item => {
+                if (item.latitude && item.longitude && !isNaN(item.latitude) && !isNaN(item.longitude)) {
+                    var circleMarker = L.circleMarker([item.latitude, item.longitude], {
+                        radius: 8,
+                        fillColor: "#FF7800",
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+
+                    circleMarker.bindPopup(`
+                        <strong>Navn: </strong>${item.Name_of_deceased || 'Ikke tilgængelig'}<br>
+                        <strong>Efternavn: </strong>${item.Last_name_of_deceased || 'Ikke tilgængelig'}<br>
+                        <strong>Rang: </strong>${item.Military_rang || 'Ikke tilgængelig'}<br>
+                        <strong>Alder ved død: </strong>${item.Age_of_death || 'Ikke tilgængelig'}<br>
+                        <strong>Fødselsdato: </strong>${item.Date_of_birth || 'Ikke tilgængelig'}<br>
+                        <strong>Dødsdato: </strong>${item.Date_of_death || 'Ikke tilgængelig'}<br>
+                        <strong>Dødssted: </strong>${item.Place_of_death || 'Ikke tilgængelig'}<br>
+                        <strong>Kilde: </strong>${item.Source || 'Ikke tilgængelig'}<br>
+                        <strong>Kildens placering: </strong>${item.Source_location || 'Ikke tilgængelig'}<br>
+                        <strong>Registreringsår og nummer: </strong>${item.Year_and_number_of_registration || 'Ikke tilgængelig'}<br>
+                        <strong>Regimentnummer ved død: </strong>${item.Military_Regiment_NR_At_Death || 'Ikke tilgængelig'}<br>
+                        <strong>Dødsårsag: </strong>${item.Cause_of_death || 'Ikke tilgængelig'}<br>
+                        <strong>Oprindelsessted: </strong>${item.Place_of_origen || 'Ikke tilgængelig'}<br>
+                        <strong>Typers kommentarer: </strong>${item.typers_coments || 'Ikke tilgængelig'}<br>
+                        <strong>Soldatetype: </strong>${item.type_of_soldier || 'Ikke tilgængelig'}<br>
+                        <strong>Bataljon: </strong>${item.Batalion || 'Ikke tilgængelig'}<br>
+                        <strong>Kompagni: </strong>${item.Company || 'Ikke tilgængelig'}<br>
+                        <strong>Bopæl: </strong>${item.Place_of_living || 'Ikke tilgængelig'}<br>
+                        <strong>Bopæls sogn: </strong>${item.Place_of_living_parish || 'Ikke tilgængelig'}<br>
+                        <strong>Fødesogn: </strong>${item.Parish_of_birth || 'Ikke tilgængelig'}<br>
+                        <strong>Mindested: </strong>${item.Minde_sted || 'Ikke tilgængelig'}<br>
+                        <strong>Mindested 2: </strong>${item.Minde_sted2 || 'Ikke tilgængelig'}<br>
+                        <strong>Rejst mindesten i Braine, Frankrig 2013: </strong>${item.Raised_on_memorial_stone_in_Braine_France_2013 || 'Ikke tilgængelig'}<br>
+                    `);
+
+                    markers.addLayer(circleMarker);
+                } else {
+                    console.warn('Ugyldig latitude eller longitude:', item);
+                }
+            });
+
+            map.addLayer(markers);
+        }
+
+        // Tilføj søgefunktionalitet
+        document.getElementById('search-input').addEventListener('input', filterMarkers);
+
+        // Tilføj dødsårsagsfilter funktionalitet
+        document.getElementById('cause-select').addEventListener('change', filterMarkers);
+
+        // Tilføj aldersintervalfilter funktionalitet
+        document.getElementById('age-select').addEventListener('change', filterMarkers);
+
+        // Filtreringsfunktion
+        function filterMarkers() {
+            var searchTerm = document.getElementById('search-input').value.toLowerCase();
+            var selectedCause = document.getElementById('cause-select').value;
+            var selectedAge = document.getElementById('age-select').value;
+
+            var filteredData = allData.filter(item => {
+                var matchesSearch = item.Name_of_deceased && item.Name_of_deceased.toLowerCase().includes(searchTerm);
+                var matchesCause = selectedCause === "" || item.Cause_of_death === selectedCause;
+                var matchesAge = true;
+
+                if (selectedAge) {
+                    var age = parseInt(item.Age_of_death, 10);
+                    if (!isNaN(age)) {
+                        var [minAge, maxAge] = selectedAge.split('-').map(Number);
+                        matchesAge = age >= minAge && age <= maxAge;
+                    } else {
+                        matchesAge = false;
+                    }
+                }
+
+                return matchesSearch && matchesCause && matchesAge;
+            });
+
+            updateMarkers(filteredData);
+        }
+
+        // Tilføj måleværktøj
+        var measureControl = L.control.measure({
+            position: 'topright',
+            primaryLengthUnit: 'kilometers',
+            secondaryLengthUnit: 'meters',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares',
+            activeColor: '#FF8C00',
+            completedColor: '#FF8C00'
+        }).addTo(map);
+
+        // Fuldskærmsknap funktionalitet
+        document.getElementById('fullscreen-toggle').addEventListener('click', function() {
+            var mapElement = document.getElementById('map');
+            if (!document.fullscreenElement) {
+                mapElement.requestFullscreen();
+                this.textContent = 'Luk fuldskærm';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    this.textContent = 'Fuldskærm';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
