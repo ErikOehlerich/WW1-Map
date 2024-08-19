@@ -24,13 +24,19 @@
             overflow: hidden;
             font-family: Arial, sans-serif;
         }
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 24px;
+            color: #333;
+        }
         #map {
             height: 600px;  /* Kortets højde */
             width: 60%;  /* Kortets bredde */
             margin: 0 auto;  /* Centrer kortet horisontalt */
             position: relative;
         }
-        #search-container, #fullscreen-btn, #cause-select-container, #age-select-container {
+        #search-container, #fullscreen-btn, #cause-select-container, #age-select-container, #info-panel, #info-panel-toggle {
             position: fixed;
             z-index: 1000; /* Sørg for, at elementerne ligger over kortet */
             background-color: #fff;
@@ -72,9 +78,27 @@
             padding: 5px;
             box-sizing: border-box;
         }
-        h1 {
+        #info-panel {
+            top: 100px;
+            right: 0;
+            width: 300px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #fff;
+            border-left: 2px solid #ccc;
+            display: none; /* Skjul panelet som standard */
+        }
+        #info-panel-toggle {
+            top: 100px;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            background-color: #fff;
+            border: 1px solid #ccc;
             text-align: center;
-            margin-top: 20px;
+            line-height: 30px;
+            cursor: pointer;
+            z-index: 1001;
         }
         #footer {
             position: fixed;
@@ -105,9 +129,9 @@
             <option value="">Alle</option>
             <option value="10-20">10-20</option>
             <option value="20-30">20-30</option>
-            <option value="31-40">31-40</option>
-            <option value="41-50">41-50</option>
-            <option value="51-60">51-60</option>
+            <option value="30-40">30-40</option>
+            <option value="40-50">40-50</option>
+            <option value="50-60">50-60</option>
             <option value="60-80">60-80</option>
             <option value="80-100">80-100</option>
         </select>
@@ -116,6 +140,19 @@
         <button id="fullscreen-toggle">Fuldskærm</button>
     </div>
     <div id="map"></div>
+    <div id="info-panel-toggle">i</div>
+    <div id="info-panel">
+        <h2>Forklaring på kortet</h2>
+        <p>Dette kort er lavet med data, som er taget fra databasen over faldne sønderjyder fra denstorekrig1914-1918.dk.</p>
+        <p>Den Store Krig er en hjemmeside, som bliver drevet af Museum Sønderjylland </p>
+        <p>Dette kort-projektet er ikke forbundet på nogen måde, med hverken hjemmesiden eller museet bagved, Museum Sønderjylland.</p>
+        <p>Jeg har valgt at arbejde med dataene for jeg fandt det meget spændende.</p>
+        <p>Kortet er kun muligt fordi der har siddet en masse frivilige, som har lavet en database som jeg har kunne visualiser.</p>
+        <p>Klik på linket, og lær mere fra deres hjemmesiden, og støt dem.</p>
+        <p>https://denstorekrig1914-1918.dk/faldne-lister/liste-over-faldne-1914-1918/ </p>
+        <p>Angående copyright, så følger jeg CC-BY-NC-SA fra https://pitt.libguides.com/copyright/licenses</p>
+        <p></p>
+        </div>
     <div id="footer">Lavet af Erik Luis Lanuza Oehlerich - erikoehlerich@gmail.com</div>
 
     <!-- Leaflet JavaScript -->
@@ -336,6 +373,19 @@
                 }
             }
         });
+
+        // Info-panel toggle funktionalitet
+        document.getElementById('info-panel-toggle').addEventListener('click', function() {
+            var infoPanel = document.getElementById('info-panel');
+            if (infoPanel.style.display === 'none' || infoPanel.style.display === '') {
+                infoPanel.style.display = 'block';
+                this.textContent = 'X'; // Skift til luk ikon
+            } else {
+                infoPanel.style.display = 'none';
+                this.textContent = 'i'; // Skift til info ikon
+            }
+        });
+
     </script>
 </body>
 </html>
