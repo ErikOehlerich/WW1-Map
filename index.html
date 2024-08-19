@@ -31,14 +31,14 @@
             color: #333;
         }
         #map {
-            height: 600px;  /* Kortets højde */
-            width: 60%;  /* Kortets bredde */
-            margin: 0 auto;  /* Centrer kortet horisontalt */
+            height: 600px;
+            width: 60%;
+            margin: 0 auto;
             position: relative;
         }
         #search-container, #fullscreen-btn, #cause-select-container, #age-select-container, #info-panel, #info-panel-toggle {
             position: fixed;
-            z-index: 1000; /* Sørg for, at elementerne ligger over kortet */
+            z-index: 1000;
             background-color: #fff;
             padding: 5px;
             border-radius: 5px;
@@ -47,7 +47,7 @@
         #search-container {
             top: 250px;
             left: 5px;
-            width: 150px; /* Gør søgebjælken mindre */
+            width: 150px;
         }
         #search-input {
             width: 100%;
@@ -87,6 +87,7 @@
             background-color: #fff;
             border-left: 2px solid #ccc;
             display: none; /* Skjul panelet som standard */
+            z-index: 1001; /* Sørg for at info-panelet er over kortet */
         }
         #info-panel-toggle {
             top: 100px;
@@ -98,7 +99,7 @@
             text-align: center;
             line-height: 30px;
             cursor: pointer;
-            z-index: 1001;
+            z-index: 1002; /* Sørg for at knappen er over info-panelet */
         }
         #footer {
             position: fixed;
@@ -149,10 +150,9 @@
         <p>Jeg har valgt at arbejde med dataene for jeg fandt det meget spændende.</p>
         <p>Kortet er kun muligt fordi der har siddet en masse frivilige, som har lavet en database som jeg har kunne visualiser.</p>
         <p>Klik på linket, og lær mere fra deres hjemmesiden, og støt dem.</p>
-        <p>https://denstorekrig1914-1918.dk/faldne-lister/liste-over-faldne-1914-1918/ </p>
-        <p>Angående copyright, så følger jeg CC-BY-NC-SA fra https://pitt.libguides.com/copyright/licenses</p>
-        <p></p>
-        </div>
+        <p><a href="https://denstorekrig1914-1918.dk/faldne-lister/liste-over-faldne-1914-1918/" target="_blank">https://denstorekrig1914-1918.dk/faldne-lister/liste-over-faldne-1914-1918/</a></p>
+        <p>Angående copyright, så følger jeg CC-BY-NC-SA fra <a href="https://pitt.libguides.com/copyright/licenses" target="_blank">https://pitt.libguides.com/copyright/licenses</a></p>
+    </div>
     <div id="footer">Lavet af Erik Luis Lanuza Oehlerich - erikoehlerich@gmail.com</div>
 
     <!-- Leaflet JavaScript -->
@@ -385,7 +385,6 @@
                 this.textContent = 'i'; // Skift til info ikon
             }
         });
-
     </script>
 </body>
 </html>
